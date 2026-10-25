@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kashi Café Finder — Discover Cafes in Varanasi</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kashi: {
+                            orange: '#D97706',
+                            dark: '#292524',
+                            cream: '#F5F5F4',
+                            terracotta: '#9A3412'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-kashi-cream text-kashi-dark font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-kashi-dark text-white shadow-md py-6 px-4">
+        <div class="max-w-6xl mx-auto text-center">
+            <h1 class="text-3xl md:text-4xl font-bold tracking-wide">☕ Kashi Café Finder</h1>
+            <p class="text-stone-300 mt-2 text-sm md:text-base">Find riverside spots, rooftop views, and cozy cafes across every corner of Varanasi.</p>
+        </div>
+    </header>
+
+    <!-- Main Search & Filter Area -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+        
+        <!-- Search Bar -->
+        <div class="mb-6">
+            <div class="relative max-w-2xl mx-auto">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-stone-400">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search by area (e.g., Assi Ghat, Godowlia), vibe (riverside, rooftop), or cafe name..." 
+                    class="w-full pl-11 pr-4 py-3.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-kashi-terracotta bg-white shadow-sm text-stone-800 text-sm md:text-base"
+                    onkeyup="filterCafes()">
+            </div>
+        </div>
+
+        <!-- Filter Controls Container -->
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-stone-200 mb-8 space-y-3">
+            <!-- Vibe / Category Filters -->
+            <div>
+                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Filter by Vibe / Type:</p>
+                <div id="categoryFilters" class="flex flex-wrap gap-2">
+                    <button onclick="filterCategory('All')" class="cat-btn px-3.5 py-1.5 rounded-lg bg-kashi-terracotta text-white font-medium text-xs md:text-sm transition shadow-sm">All Vibes</button>
+                    <button onclick="filterCategory('Riverside / Ghat')" class="cat-btn px-3.5 py-1.5 rounded-lg bg-stone-100 text-stone-700 font-medium text-xs md:text-sm transition hover:bg-stone-200 shadow-sm">Riverside / Ghat</button>
+                    <button onclick="filterCategory('Rooftop')" class="cat-btn px-3.5 py-1.5 rounded-lg bg-stone-100 text-stone-700 font-medium text-xs md:text-sm transition hover:bg-stone-200 shadow-sm">Rooftop</button>
+                    <button onclick="filterCategory('Artisan Coffee')" class="cat-btn px-3.5 py-1.5 rounded-lg bg-stone-100 text-stone-700 font-medium text-xs md:text-sm transition hover:bg-stone-200 shadow-sm">Artisan Coffee</button>
+                    <button onclick="filterCategory('Modern / Fine Dining')" class="cat-btn px-3.5 py-1.5 rounded-lg bg-stone-100 text-stone-700 font-medium text-xs md:text-sm transition hover:bg-stone-200 shadow-sm">Modern & Luxury</button>
+                </div>
+            </div>
+
+            <hr class="border-stone-100">
+
+            <!-- Area / Neighborhood Filters -->
+            <div>
+                <p class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Filter by Area / Neighborhood:</p>
+                <div id="areaFilters" class="flex flex-wrap gap-2">
+                    <button onclick="filterArea('All')" class="area-btn px-3 py-1 rounded-md bg-stone-800 text-white font-medium text-xs transition shadow-sm">All Areas</button>
+                    <button onclick="filterArea('Assi Ghat')" class="area-btn px-3 py-1 rounded-md bg-stone-100 text-stone-700 font-medium text-xs transition hover:bg-stone-200 shadow-sm">Assi Ghat</button>
+                    <button onclick="filterArea('Godowlia')" class="area-btn px-3 py-1 rounded-md bg-stone-100 text-stone-700 font-medium text-xs transition hover:bg-stone-200 shadow-sm">Godowlia / Chowk</button>
+                    <button onclick="filterArea('Meer Ghat')" class="area-btn px-3 py-1 rounded-md bg-stone-100 text-stone-700 font-medium text-xs transition hover:bg-stone-200 shadow-sm">Meer Ghat / Central Ghats</button>
+                    <button onclick="filterArea('Cantonment')" class="area-btn px-3 py-1 rounded-md bg-stone-100 text-stone-700 font-medium text-xs transition hover:bg-stone-200 shadow-sm">Cantonment / Mahmoorganj</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Café Grid -->
+        <div id="cafeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Cards populated via JS -->
+        </div>
+
+        <!-- Empty State Message -->
+        <div id="noResults" class="hidden text-center py-16 text-stone-500">
+            <p class="text-xl font-semibold text-stone-700 mb-1">No cafes found 😔</p>
+            <p class="text-sm">Try checking your spelling or searching for a different area (e.g., Assi Ghat, Rooftop).</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-200 text-stone-600 py-4 text-center text-sm border-t border-stone-300">
+        <p>Made with warmth for Kashi explorers ✨</p>
+    </footer>
+
+    <!-- JavaScript Dataset & Improvised Filtering Logic -->
+    <script>
+        const cafes = [
+            {
+                name: "Pizzeria Vaatika Cafe",
+                category: "Riverside / Ghat",
+                area: "Assi Ghat",
+                address: "Assi Ghat, Varanasi, UP",
+                description: "A legendary riverside staple since 1992, famous for its wood-fired pizzas, apple pie, and direct views of the Ganges.",
+                specialty: "Wood-Fired Pizza & Apple Pie",
+                price: "₹700 for two",
+                mapQuery: "Pizzeria Vaatika Cafe Assi Ghat Varanasi"
+            },
+            {
+                name: "Terracotta Cafe",
+                category: "Artisan Coffee",
+                area: "Assi Ghat",
+                address: "Near Assi Ghat, Varanasi, UP",
+                description: "An intimate, aesthetic space offering farm-to-plate artisan coffee served in handmade clay utensils with cozy floor seating.",
+                specialty: "Artisan Coffee & Aesthetic Vibe",
+                price: "₹500 for two",
+                mapQuery: "Terracotta Cafe Assi Ghat Varanasi"
+            },
+            {
+                name: "Aum Cafe",
+                category: "Rooftop",
+                area: "Assi Ghat",
+                address: "Near Assi Ghat, Varanasi, UP",
+                description: "A peaceful rooftop haven specializing in healthy vegetarian, organic, and gluten-free wholesome breakfasts with a calm atmosphere.",
+                specialty: "Organic Breakfast & Smoothies",
+                price: "₹600 for two",
+                mapQuery: "Aum Cafe Assi Ghat Varanasi"
+            },
+            {
+                name: "Root Restaurant & River Club",
+                category: "Riverside / Ghat",
+                area: "Assi Ghat",
+                address: "Assi Ghat, Varanasi, UP",
+                description: "A vibrant mid-range riverside spot featuring outdoor seating, live music sessions, multi-cuisine Italian plates, and local thalis.",
+                specialty: "Continental Pastas & River Views",
+                price: "₹900 for two",
+                mapQuery: "Root Restaurant River Club Assi Ghat Varanasi"
+            },
+            {
+                name: "Moon Over Kashi",
+                category: "Rooftop",
+                area: "Meer Ghat",
+                address: "Chausatti Ghat, Varanasi, UP",
+                description: "A cozy budget-friendly rooftop spot providing scenic river views, herbal teas, pancakes, and simple continental snacks.",
+                specialty: "Masala Chai & Sunrise Views",
+                price: "₹350 for two",
+                mapQuery: "Moon Over Kashi Chausatti Ghat Varanasi"
+            },
+            {
+                name: "Ganpati Guest House Rooftop",
+                category: "Rooftop",
+                area: "Meer Ghat",
+                address: "Meer Ghat, Varanasi, UP",
+                description: "Features a brightly painted open-air terrace overlooking the central ghats with an extensive vegetarian, Israeli, and health-focused menu.",
+                specialty: "Falafel Platter & Muesli Bowls",
+                price: "₹500 for two",
+                mapQuery: "Ganpati Guest House Rooftop Meer Ghat Varanasi"
+            },
+            {
+                name: "Brown Bread Cafe",
+                category: "Rooftop",
+                area: "Godowlia",
+                address: "Bangali Tola, near Dashashwamedh, Varanasi, UP",
+                description: "A well-known social-enterprise bakery and rooftop cafe providing wonderful cityscape views, honey pancakes, and organic cheese.",
+                specialty: "Bakery Items & Pancakes",
+                price: "₹600 for two",
+                mapQuery: "Brown Bread Cafe Varanasi"
+            },
+            {
+                name: "Sparrow Cafe",
+                category: "Artisan Coffee",
+                area: "Godowlia",
+                address: "Old City Lanes, near Godowlia, Varanasi, UP",
+                description: "A charming retreat tucked away in the old city known for specialized espresso brews, fresh pastries, and signature sparrow cookies.",
+                specialty: "Specialty Brews & Pastries",
+                price: "₹400 for two",
+                mapQuery: "Sparrow Cafe Varanasi"
+            },
+            {
+                name: "Itihaas Alley Kitchen",
+                category: "Modern / Fine Dining",
+                area: "Godowlia",
+                address: "Godowlia / Chowk Area, Varanasi, UP",
+                description: "A welcome air-conditioned escape from the street heat offering reliable Wi-Fi, hummus platters, traditional thalis, and comfort.",
+                specialty: "AC Comfort & Thalis",
+                price: "₹800 for two",
+                mapQuery: "Itihaas Alley Kitchen Varanasi"
+            },
+            {
+                name: "Cabami Rooftop & Bar",
+                category: "Modern / Fine Dining",
+                area: "Cantonment",
+                address: "Mahmoorganj / Cantonment Area, Varanasi, UP",
+                description: "An upscale fine-dining rooftop destination with cabana seating, wood-fired pizzas, artisanal mocktails, and weekend DJ sets.",
+                specialty: "Wood-Fired Pizza & Mocktails",
+                price: "₹2,200 for two",
+                mapQuery: "Cabami Rooftop Mahmoorganj Varanasi"
+            }
+        ];
+
+        let selectedCategory = 'All';
+        let selectedArea = 'All';
+
+        function displayCafes(cafesToDisplay) {
+            const grid = document.getElementById('cafeGrid');
+            const noResults = document.getElementById('noResults');
+            grid.innerHTML = '';
+
+            if (cafesToDisplay.length === 0) {
+                noResults.classList.remove('hidden');
+                return;
+            } else {
+                noResults.classList.add('hidden');
+            }
+
+            cafesToDisplay.forEach(cafe => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl shadow-md overflow-hidden border border-stone-200 flex flex-col justify-between transition transform hover:-translate-y-1 hover:shadow-lg";
+                
+                card.innerHTML = `
+                    <div class="p-6">
+                        <div class="flex justify-between items-start gap-2 mb-2">
+                            <h3 class="text-xl font-bold text-stone-800">${cafe.name}</h3>
+                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 whitespace-nowrap">${cafe.category}</span>
+                        </div>
+                        <p class="text-stone-500 text-sm mb-3 flex items-center gap-1">📍 ${cafe.address}</p>
+                        <p class="text-stone-600 text-sm mb-4">${cafe.description}</p>
+                        <div class="bg-stone-50 p-3 rounded-lg border border-stone-100 text-xs space-y-1">
+                            <p class="text-stone-700"><strong>Specialty:</strong> ${cafe.specialty}</p>
+                            <p class="text-stone-700"><strong>Average Budget:</strong> ${cafe.price}</p>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4 bg-stone-50 border-t border-stone-100 flex justify-between items-center">
+                        <span class="text-xs font-medium text-stone-500">📍 Area: ${cafe.area}</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cafe.mapQuery)}" target="_blank" 
+                           class="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-kashi-terracotta px-4 py-2 rounded-lg hover:bg-amber-800 transition">
+                           Get Directions 🗺️
+                        </a>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterCategory(category) {
+            selectedCategory = category;
+            
+            // Update Vibe button UI
+            document.querySelectorAll('#categoryFilters button').forEach(btn => {
+                if (btn.textContent.includes(category) || (category === 'All' && btn.textContent.includes('All Vibes'))) {
+                    btn.className = "cat-btn px-3.5 py-1.5 rounded-lg bg-kashi-terracotta text-white font-medium text-xs md:text-sm transition shadow-sm";
+                } else {
+                    btn.className = "cat-btn px-3.5 py-1.5 rounded-lg bg-stone-100 text-stone-700 font-medium text-xs md:text-sm transition hover:bg-stone-200 shadow-sm";
+                }
+            });
+
+            filterCafes();
+        }
+
+        function filterArea(area) {
+            selectedArea = area;
+            
+            // Update Area button UI
+            document.querySelectorAll('#areaFilters button').forEach(btn => {
+                if (btn.textContent.includes(area) || (area === 'All' && btn.textContent.includes('All Areas'))) {
+                    btn.className = "area-btn px-3 py-1 rounded-md bg-stone-800 text-white font-medium text-xs transition shadow-sm";
+                } else {
+                    btn.className = "area-btn px-3 py-1 rounded-md bg-stone-100 text-stone-700 font-medium text-xs transition hover:bg-stone-200 shadow-sm";
+                }
+            });
+
+            filterCafes();
+        }
+
+        function filterCafes() {
+            const
